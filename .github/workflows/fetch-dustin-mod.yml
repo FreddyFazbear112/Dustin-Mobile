@@ -1,0 +1,67 @@
+name: Fetch Dustin mod assets
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-mod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out mobile project
+        uses: actions/checkout@v4
+
+      - name: Download the exact Game Jolt build
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_id="2042946"
+          endpoint="https://gamejolt.com/site-api/web/discover/games/builds/get-download-url/${build_id}"
+          response="$(curl --fail --silent --show-error --location \
+            --retry 3 --retry-delay 2 \
+            --data 'forceDownload:true' "${endpoint}")"
+          download_url="$(jq -er '.payload.url' <<< "${response}")"
+          mkdir -p /tmp/dustin-download
+          curl --fail --silent --show-error --location \
+            --retry 3 --retry-delay 2 \
+            "${download_url}" -o /tmp/dustin-download/mod-archive
+          file /tmp/dustin-download/mod-archive
+          mkdir -p /tmp/dustin-extracted
+          if unzip -tq /tmp/dustin-download/mod-archive >/dev/null 2>&1; then
+            unzip -q /tmp/dustin-download/mod-archive -d /tmp/dustin-extracted
+          elif tar -tf /tmp/dustin-download/mod-archive >/dev/null 2>&1; then
+            tar -xf /tmp/dustin-download/mod-archive -C /tmp/dustin-extracted
+          else
+            echo "The downloaded build is not a ZIP or TAR archive."
+            exit 1
+          fi
+
+          mkdir -p mods/Dustin
+          shopt -s dotglob nullglob
+          entries=(/tmp/dustin-extracted/*)
+          if [[ ${#entries[@]} -eq 1 && -d "${entries[0]}" ]]; then
+            inner_entries=("${entries[0]}"/*)
+            if [[ ${#inner_entries[@]} -gt 0 ]]; then
+              cp -a "${inner_entries[@]}" mods/Dustin/
+            fi
+          else
+            if [[ ${#entries[@]} -gt 0 ]]; then
+              cp -a "${entries[@]}" mods/Dustin/
+            fi
+          fi
+          echo "Fetched archive contents:"
+          find mods/Dustin -maxdepth 3 -type f | head -200
+          test -n "$(find mods/Dustin -type f -print -quit)" || {
+            echo "No mod files were extracted."
+            exit 1
+          }
+
+      - name: Upload extracted mod as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dustin-mod-assets
+          path: mods/Dustin/
+          if-no-files-found: error
+          retention-days: 14
