@@ -2,6 +2,9 @@ name: Fetch Dustin mod assets
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-dustin-mod.yml'
 
 permissions:
   contents: read
