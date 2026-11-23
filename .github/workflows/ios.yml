@@ -29,6 +29,15 @@ jobs:
       - name: Installing/Updating libraries
         run: |
           haxe -cp commandline -D analyzer-optimize --run Main setup -s
+      - name: Verify engine dependencies installed
+        run: |
+          set -e
+          haxelib path hxcpp
+          haxelib path openfl
+          haxelib path lime
+          haxelib path flixel
+          haxelib path flixel-addons
+          haxelib path hscript-improved
       - name: Building the game
         run: haxelib run lime build ios -eval -nosign -final
       - name: Clearing already existing cache
