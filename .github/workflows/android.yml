@@ -30,6 +30,9 @@ jobs:
       - name: Installing/Updating libraries
         run: |
           haxe -cp commandline -D analyzer-optimize --run Main setup -s
+      - name: Build Lime native tools
+        run: haxelib run lime rebuild cpp
+
       - name: Verify engine dependencies installed
         run: |
           set -e
