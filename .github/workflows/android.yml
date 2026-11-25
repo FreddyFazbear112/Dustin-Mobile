@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Pulling the new commit
         uses: actions/checkout@v4
+      - name: Download and install Dustin mod assets
+        run: bash .github/scripts/fetch-dustin-mod.sh
       - name: Setting up Haxe
         uses: krdlab/setup-haxe@v2
         with:
