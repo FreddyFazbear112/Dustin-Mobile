@@ -32,6 +32,8 @@ jobs:
           LIME_DIR="$(haxelib libpath lime)"
           echo "Lime source: $LIME_DIR"
           git -C "$LIME_DIR" submodule sync --recursive
+          # The fork's Pixman URL is unavailable; the pinned commit exists on the public OpenFL mirror.
+          git -C "$LIME_DIR" config submodule.project/lib/pixman.url https://github.com/openfl/libpixman
           git -C "$LIME_DIR" submodule update --init --recursive
           test -f "$LIME_DIR/project/lib/cairo/files.xml"
       - name: Build Lime native tools and iOS libraries
